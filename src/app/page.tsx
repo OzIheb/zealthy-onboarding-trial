@@ -1,103 +1,179 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
+import { Progress } from "@/components/ui/progress"; 
+import { Step1Form } from '@/components/onboarding/step-1-form';
+import { createUserAction, updateUserOnboarding } from '@/actions/userActions';
+import { getCurrentConfig } from '@/actions/configActions';
+import { OnboardingConfig } from '@/lib/validators/config';
+import { DynamicStepForm } from '@/components/onboarding/dynamic-step-form';
+import { CheckCircleIcon } from 'lucide-react'; 
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+
+
+// Define the total number of steps
+const TOTAL_STEPS = 3;
+
+export default function OnboardingWizard() {
+    const [currentStep, setCurrentStep] = useState(1);
+    const [userId, setUserId] = useState<string | null>(null); 
+    const [config, setConfig] = useState<OnboardingConfig | null>(null);
+    const [isLoadingConfig, setIsLoadingConfig] = useState<boolean>(true);
+    const [configError, setConfigError] = useState<string | null>(null);
+    const [isOnboardingComplete, setIsOnboardingComplete] = useState(false); 
+
+    // Fetch configuration on mount
+    useEffect(() => {
+        const fetchConfig = async () => {
+            setIsLoadingConfig(true);
+            setConfigError(null);
+            try {
+                const result = await getCurrentConfig();
+                if (result.status === 'success' && result.config) {
+                    setConfig(result.config);
+                    console.log("Configuration loaded:", result.config); // Log loaded config
+                } else {
+                    setConfigError(result.message || 'Failed to load configuration.');
+                }
+            } catch (error) {
+                console.error("Error fetching config:", error);
+                setConfigError('An unexpected error occurred while fetching configuration.');
+            } finally {
+                setIsLoadingConfig(false);
+            }
+        };
+
+        fetchConfig();
+    }, []); 
+
+    const handleNextStep = () => {
+        console.log(`handleNextStep called: currentStep = ${currentStep}, isLoadingConfig = ${isLoadingConfig}, config = ${!!config}`);
+        if (currentStep > 1 && (isLoadingConfig || !config)) {
+             console.log("Attempted to advance step before config loaded. Returning.");
+             return; 
+         }
+
+        if (currentStep < TOTAL_STEPS) {
+            console.log(`Advancing step from ${currentStep} to ${currentStep + 1}`);
+            setCurrentStep(prev => prev + 1);
+        } else {
+            console.warn(`handleNextStep called on the final step (${currentStep}), this might indicate an issue.`);
+        }
+    };
+
+    const handleFinalStepSuccess = () => {
+        console.log("Final step successful. Setting onboarding complete.");
+        setIsOnboardingComplete(true);
+    };
+
+    const handleStep1Success = (newUserId: string) => {
+        console.log("Step 1 Success! User ID:", newUserId);
+        setUserId(newUserId);
+    };
+
+    useEffect(() => {
+        if (currentStep === 1 && userId && !isLoadingConfig && config) {
+            setCurrentStep(2);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentStep, userId, isLoadingConfig, config]);
+
+    const renderStepContent = () => {
+        console.log(`renderStepContent called: currentStep = ${currentStep}, isOnboardingComplete = ${isOnboardingComplete}`);
+        if (isOnboardingComplete) {
+            console.log("Rendering Completion Message");
+            return (
+                <div className="text-center flex flex-col items-center justify-center space-y-3 min-h-[200px]"> 
+                     <CheckCircleIcon className="h-12 w-12 text-green-500" />
+                    <p className="text-lg font-medium">Onboarding Complete!</p>
+                    <p className="text-sm text-muted-foreground">Thank you for setting up your account.</p>
+                </div>
+            );
+        }
+
+        if (currentStep > 1 && isLoadingConfig) {
+            return <div>Loading configuration...</div>;
+        }
+        if (currentStep > 1 && configError) {
+            return <div className="text-destructive">Error: {configError}</div>;
+        }
+        if (currentStep > 1 && (!config || !userId)) {
+            return <div className="text-destructive">User or configuration not available.</div>;
+        }
+
+        switch (currentStep) {
+            case 1:
+                console.log("Rendering Step 1");
+                return <Step1Form
+                    createUserAction={createUserAction}
+                    onSubmitSuccess={handleStep1Success}
+                />;
+            case 2:
+                 console.log("Rendering Step 2");
+                 if (!userId || !config?.page2) {
+                    console.error("Error rendering Step 2: Missing userId or config.page2");
+                    return <div>Error: Missing data for step 2.</div>;
+                 }
+                // Render DynamicStepForm for Step 2
+                return <DynamicStepForm
+                    key={currentStep}
+                    userId={userId}
+                    fields={config.page2}
+                    currentStep={currentStep}
+                    updateUserAction={updateUserOnboarding} 
+                    onSubmitSuccess={handleNextStep} 
+                />;
+            case 3:
+                 console.log("Rendering Step 3");
+                 if (!userId || !config?.page3) {
+                    console.error("Error rendering Step 3: Missing userId or config.page3");
+                    return <div>Error: Missing data for step 3.</div>;
+                 }
+                return <DynamicStepForm
+                    key={currentStep}
+                    userId={userId}
+                    fields={config.page3}
+                    currentStep={currentStep}
+                    updateUserAction={updateUserOnboarding}
+                    onSubmitSuccess={handleFinalStepSuccess} 
+                />;
+            default:
+                console.warn(`Rendering Invalid Step: ${currentStep}`);
+                return <div>Invalid Step</div>;
+        }
+    };
+
+    const progressValue = isOnboardingComplete
+        ? 100
+        : Math.max(0, ((currentStep - 1) / TOTAL_STEPS) * 100);
+
+    const getDescriptionText = () => {
+        if (isOnboardingComplete) {
+            return "You're all set!";
+        }
+        if (isLoadingConfig && currentStep > 1) {
+            return 'Loading configuration...';
+        }
+        return `Let's get your account set up. Step ${currentStep} of ${TOTAL_STEPS}.`;
+    };
+
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
+            <Card className="w-full max-w-lg shadow-lg">
+                <CardHeader>
+                    <CardTitle className="text-2xl font-semibold text-center text-blue-600">
+                        {isOnboardingComplete ? "Setup Complete!" : "Welcome aboard!"} 
+                    </CardTitle>
+                    <CardDescription className="text-center text-gray-600 dark:text-gray-400">
+                         {getDescriptionText()}
+                    </CardDescription>
+                    <Progress value={progressValue} className="w-full mt-4 h-2 [&>div]:bg-blue-500" /> 
+                </CardHeader>
+                <CardContent className="min-h-[200px] py-6"> 
+                    {renderStepContent()}
+                </CardContent>
+            </Card>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }
