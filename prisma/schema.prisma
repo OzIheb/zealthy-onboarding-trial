@@ -17,7 +17,7 @@ datasource db {
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
-  password       String // Remember to hash this before saving!
+  password       String 
   aboutMe        String?
   streetAddress  String?
   city           String?
