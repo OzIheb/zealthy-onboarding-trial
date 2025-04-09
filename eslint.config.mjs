@@ -14,7 +14,7 @@ const eslintConfig = [
     ignores: [
       ".next/**",
       "node_modules/**",
-      "src/generated/**",
+      "src/app/generated/**",
     ]
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

@@ -1,7 +1,6 @@
 'use server';
 
 import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import {
     OnboardingConfig,
@@ -10,6 +9,7 @@ import {
     adminConfigFormSchema,
     defaultConfig 
 } from '@/lib/validators/config';
+import prisma from '@/lib/prisma';
 
 interface GetConfigActionState {
     status: 'success' | 'error';
@@ -23,7 +23,6 @@ interface UpdateConfigActionState {
     formError?: string;
 }
 
-// --- getCurrentConfig Action ---
 export async function getCurrentConfig(): Promise<GetConfigActionState> {
     try {
         const dbConfigRecord = await prisma.onboardingConfiguration.findUnique({ where: { id: 1 } });
@@ -76,7 +75,6 @@ export async function getCurrentConfig(): Promise<GetConfigActionState> {
     }
 }
 
-// --- updateConfig Action ---
 export async function updateConfig(
     prevState: UpdateConfigActionState,
     formData: FormData

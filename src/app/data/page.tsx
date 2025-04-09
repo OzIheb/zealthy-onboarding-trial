@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma'; 
 import { format } from 'date-fns';
 import {
   Table,
@@ -9,7 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {  User } from '@/generated/prisma';
+import prisma from '@/lib/prisma';
+import { User } from '../generated/prisma';
 
 export const dynamic = 'force-dynamic';
 

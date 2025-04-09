@@ -1,14 +1,13 @@
 'use server';
 
 import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
 import { step1Schema } from '@/lib/validators/auth';
 import { getCurrentConfig } from './configActions';
 import { revalidatePath } from 'next/cache';
 import { OnboardingFieldType } from '@/lib/validators/config';
 import { addressSchema } from '@/lib/validators/common';
 import { UpdateUserActionState } from '@/types/actions';
-
+import prisma from '@/lib/prisma';
 interface CreateUserActionState { 
     status: 'idle' | 'success' | 'error';
     message: string;
