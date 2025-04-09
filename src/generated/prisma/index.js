@@ -163,10 +163,6 @@ const config = {
         "fromEnvVar": null,
         "value": "darwin-arm64",
         "native": true
-      },
-      {
-        "fromEnvVar": null,
-        "value": "rhel-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
@@ -193,8 +189,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider      = \"prisma-client-js\"\n  output        = \"../src/generated/prisma\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id             String    @id @default(cuid())\n  email          String    @unique\n  password       String // Remember to hash this before saving!\n  aboutMe        String?\n  streetAddress  String?\n  city           String?\n  state          String?\n  zipCode        String?\n  birthdate      DateTime?\n  onboardingStep Int       @default(1)\n  createdAt      DateTime  @default(now())\n  updatedAt      DateTime  @updatedAt\n\n  @@map(\"users\")\n}\n\nmodel OnboardingConfiguration {\n  id         Int      @id @default(1) // Use a fixed ID for the single config row\n  configData Json\n  updatedAt  DateTime @updatedAt\n\n  @@map(\"onboarding_configurations\")\n}\n",
-  "inlineSchemaHash": "0edc7e26c9b76fcbb2d463a6b0fc758e2daac518e5c81569c72bf6cf9ed2716c",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id             String    @id @default(cuid())\n  email          String    @unique\n  password       String // Remember to hash this before saving!\n  aboutMe        String?\n  streetAddress  String?\n  city           String?\n  state          String?\n  zipCode        String?\n  birthdate      DateTime?\n  onboardingStep Int       @default(1)\n  createdAt      DateTime  @default(now())\n  updatedAt      DateTime  @updatedAt\n\n  @@map(\"users\")\n}\n\nmodel OnboardingConfiguration {\n  id         Int      @id @default(1) // Use a fixed ID for the single config row\n  configData Json\n  updatedAt  DateTime @updatedAt\n\n  @@map(\"onboarding_configurations\")\n}\n",
+  "inlineSchemaHash": "4f171a914cbf5ca9a16e8656001236d666e74156b196602eb249c76d96999aec",
   "copyEngine": true
 }
 
@@ -235,10 +231,6 @@ Object.assign(exports, Prisma)
 // file annotations for bundling tools to include these files
 path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
 path.join(process.cwd(), "src/generated/prisma/libquery_engine-darwin-arm64.dylib.node")
-
-// file annotations for bundling tools to include these files
-path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node");
-path.join(process.cwd(), "src/generated/prisma/libquery_engine-rhel-openssl-3.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "src/generated/prisma/schema.prisma")
