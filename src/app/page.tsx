@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"; 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
 import { Progress } from "@/components/ui/progress"; 
 import { Step1Form } from '@/components/onboarding/step-1-form';
 import { createUserAction, updateUserOnboarding } from '@/actions/userActions';
@@ -12,7 +12,6 @@ import { CheckCircleIcon } from 'lucide-react';
 
 
 
-// Define the total number of steps
 const TOTAL_STEPS = 3;
 
 export default function OnboardingWizard() {
@@ -76,7 +75,6 @@ export default function OnboardingWizard() {
         if (currentStep === 1 && userId && !isLoadingConfig && config) {
             setCurrentStep(2);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentStep, userId, isLoadingConfig, config]);
 
     const renderStepContent = () => {

@@ -1,43 +1,22 @@
 'use server';
 
 import { z } from 'zod';
-import { prisma } from '@/lib/prisma'; // Import the singleton instance
+import { prisma } from '@/lib/prisma';
 import { step1Schema } from '@/lib/validators/auth';
-// Import config fetching and types
 import { getCurrentConfig } from './configActions';
-import { revalidatePath } from 'next/cache'; // For revalidating the data page
-import { OnboardingConfig, OnboardingFieldType } from '@/lib/validators/config';
-// Import the shared address schema
+import { revalidatePath } from 'next/cache';
+import { OnboardingFieldType } from '@/lib/validators/config';
 import { addressSchema } from '@/lib/validators/common';
-// Import the shared action state type
 import { UpdateUserActionState } from '@/types/actions';
 
-// Define the return type for the action state
-interface ActionState {
+interface CreateUserActionState { 
     status: 'idle' | 'success' | 'error';
     message: string;
     userId?: string;
     errors?: Record<string, string[]>;
 }
-
-// --- Action State for createUserAction ---
-interface CreateUserActionState { // Renamed for clarity
-    status: 'idle' | 'success' | 'error';
-    message: string;
-    userId?: string;
-    errors?: Record<string, string[]>;
-}
-
-// --- Action State for updateUserOnboarding ---
-// REMOVED Local definition - Using imported type now.
-// interface UpdateUserActionState { 
-//     status: 'idle' | 'success' | 'error';
-//     message: string;
-//     errors?: Record<string, string[] | Record<string, string[]>>;
-// }
 
 export async function createUserAction(prevState: CreateUserActionState, formData: FormData): Promise<CreateUserActionState> {
-    // 1. Validate form data
     const validatedFields = step1Schema.safeParse(
         Object.fromEntries(formData.entries())
     );
@@ -93,8 +72,6 @@ export async function createUserAction(prevState: CreateUserActionState, formDat
     }
 }
 
-// --- updateUserOnboarding Action ---
-// Uses the imported UpdateUserActionState
 export async function updateUserOnboarding(
     prevState: UpdateUserActionState,
     formData: FormData
@@ -147,6 +124,7 @@ export async function updateUserOnboarding(
     const stepSchema = z.object(stepSchemaObject);
 
     // Extract data from FormData for validation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dataToValidate: Record<string, any> = {};
     for (const field of expectedFields) {
         if (field === 'address') {
@@ -170,25 +148,35 @@ export async function updateUserOnboarding(
         return {
             status: 'error',
             message: 'Invalid form data for this step.',
-            // Zod errors already match the shared type
-            errors: validatedFields.error.flatten().fieldErrors as Record<string, string[] | Record<string, string[]>>,
+            errors: validatedFields.error.flatten().fieldErrors as z.inferFlattenedErrors<typeof stepSchema>['fieldErrors'],
         };
     }
 
     // 4. Prepare data for Prisma update
-    const dataToUpdate: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dataToUpdate: any = {}; // Temporarily using any due to type issues
     for (const field of expectedFields) {
-        if (validatedFields.data[field] !== undefined) {
-            if (field === 'address') {
-                // If address was validated, spread its parts into the update object
-                const addressData = validatedFields.data.address as z.infer<typeof addressSchema>; // Type assertion
-                dataToUpdate.streetAddress = addressData.streetAddress;
-                dataToUpdate.city = addressData.city;
-                dataToUpdate.state = addressData.state;
-                dataToUpdate.zipCode = addressData.zipCode;
-            } else {
-                // Assign other fields directly
-                dataToUpdate[field] = validatedFields.data[field];
+        // Check if the field exists in the validated data
+        if (field in validatedFields.data) {
+            // Get the value safely. TypeScript knows 'field' is a key here.
+            const value = validatedFields.data[field];
+            
+            if (value !== undefined) { // Ensure value is not undefined before proceeding
+                if (field === 'address') {
+                    // We know value is address object here due to schema validation
+                    const addressData = value as z.infer<typeof addressSchema>; 
+                    dataToUpdate.streetAddress = addressData.streetAddress;
+                    dataToUpdate.city = addressData.city;
+                    dataToUpdate.state = addressData.state;
+                    dataToUpdate.zipCode = addressData.zipCode;
+                } else {
+                    // Assign other fields directly.
+                    // Cast to 'any' might be needed if 'field' name doesn't directly
+                    // map to a User model field acceptable by Prisma.UserUpdateInput.
+                    // Ideally, map field names explicitly if they differ from DB columns.
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    dataToUpdate[field] = value as any; 
+                }
             }
         }
     }

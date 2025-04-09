@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, startTransition } from 'react';
-import { useForm, Controller, FieldError as RHFFieldError, FieldErrorsImpl, Merge } from 'react-hook-form';
+import { useForm,  FieldError as RHFFieldError, FieldErrorsImpl, } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
@@ -13,7 +13,6 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from "@/components/ui/form";
 import { AboutMeField } from './about-me-field';
@@ -25,7 +24,6 @@ import { UpdateUserActionState } from '@/types/actions';
 
 const coreFieldSchemas = {
     aboutMe: z.string().min(10, "Please tell us a bit more (at least 10 characters)."),
-    // Use the imported address object schema
     address: addressSchema,
     birthdate: z.preprocess((arg) => {
              if (typeof arg === 'string' && arg.length > 0) {
@@ -37,7 +35,6 @@ const coreFieldSchemas = {
               .refine(val => val < new Date(), "Birthdate must be in the past."))
 };
 
-// Define the type for the address field errors based on AddressData keys
 type AddressFieldErrors = Partial<Record<keyof AddressData, RHFFieldError>>;
 
 const generateStepSchema = (fields: OnboardingFieldType[]) => {
@@ -49,9 +46,11 @@ const generateStepSchema = (fields: OnboardingFieldType[]) => {
         return acc;
     }, {} as Partial<{ [K in OnboardingFieldType]: z.ZodTypeAny }>); // Use Partial for flexibility
 
-    // Ensure the resulting type includes the possibility of address being an object
-    return z.object(stepSchemaObject) as z.ZodObject<any>; // Cast for now, refine if needed
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return z.object(stepSchemaObject) as z.ZodObject<any>; 
 };
+
 
 const initialUpdateState: UpdateUserActionState = { status: 'idle', message: '' };
 

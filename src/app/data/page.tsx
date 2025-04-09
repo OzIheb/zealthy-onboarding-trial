@@ -9,11 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {  User } from '@/generated/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DataPage() {
-    let users: any[] = [];
+    let users: User[] = [];
     let fetchError: string | null = null;
 
     try {
@@ -35,7 +36,7 @@ export default async function DataPage() {
          return value ?? 'N/A';
      }
 
-    const formatAddress = (user: any): string => {
+    const formatAddress = (user: User): string => {
         const parts = [
             user.streetAddress,
             user.city,
