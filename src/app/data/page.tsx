@@ -81,7 +81,9 @@ export default async function DataPage() {
                                     {/* Use monospace for ID for better readability */}
                                     <TableCell className="font-mono text-xs">{user.id}</TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                    <TableCell className="text-center">{user.onboardingStep}</TableCell>
+                                    <TableCell className="text-center">
+                                        {user.onboardingStep === 4 ? 'Done' : user.onboardingStep}
+                                    </TableCell>
                                     <TableCell>{formatDate(user.birthdate)}</TableCell>
                                      <TableCell>{formatAddress(user)}</TableCell>
                                      <TableCell>{displayOptionalString(user.aboutMe)}</TableCell>

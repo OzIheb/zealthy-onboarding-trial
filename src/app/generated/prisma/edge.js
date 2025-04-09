@@ -179,12 +179,11 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": null
+        "value": "postgres://postgres:OvMhTKYuWj4X7yjw@db.vlnzrrhspujnwghmygpe.supabase.co:5432/postgres?sslmode=require"
       }
     }
   },
